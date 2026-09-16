@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>オリジナル番組表</title>
+  <title>TVer風 番組表</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,195 +11,493 @@
       padding: 0;
     }
     body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-      background-color: #eef0f4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #e8ecf2;
+      color: #1a1a1a;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* -----------------------------------
+      左側サイドナビゲーション
+    ----------------------------------- */
+    .sidebar {
+      width: 200px;
+      background-color: #ffffff;
+      border-right: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      padding: 20px 15px;
+      overflow-y: auto;
+    }
+
+    /* ロゴ */
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      padding-left: 5px;
+    }
+    .hamburger-icon {
+      font-size: 20px;
+      cursor: pointer;
       color: #333;
     }
-    .header {
-      padding: 20px;
-      background-color: #fff;
-      border-bottom: 1px solid #ddd;
+    .logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      color: #00a0e9;
+      letter-spacing: -1px;
+    }
+    .logo-text span {
+      color: #333;
+      font-size: 10px;
+      background: #eee;
+      padding: 2px 4px;
+      border-radius: 3px;
+      margin-left: 2px;
+      vertical-align: super;
     }
 
-    /* 番組表のメイン構造 */
-    .timetable-container {
+    /* ナビメニュー */
+    .nav-list {
+      list-style: none;
+      margin-bottom: 30px;
+    }
+    .nav-item {
       display: flex;
-      overflow-x: auto;
-      margin: 20px;
-      background: #fff;
-      border: 1px solid #ccc;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 10px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-item:hover {
+      background-color: #f5f5f5;
+    }
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: #333;
+      stroke-width: 2;
     }
 
-    /* 左側の時間軸 */
-    .time-sidebar {
-      width: 50px;
+    /* カテゴリ */
+    .category-title {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 15px;
+      padding-left: 10px;
+    }
+    .category-list {
+      list-style: none;
+    }
+    .category-item {
+      padding: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+    }
+    .category-item:hover {
+      color: #00a0e9;
+    }
+
+
+    /* -----------------------------------
+      右側メインコンテンツエリア
+    ----------------------------------- */
+    .main-wrapper {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 上部ヘッダー（検索バー） */
+    .top-header {
+      height: 60px;
+      background-color: #e8ecf2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 40px;
       flex-shrink: 0;
-      background: #5a6268;
-      color: #fff;
+    }
+    .search-box {
+      width: 100%;
+      max-width: 600px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 15px 10px 40px;
+      border-radius: 8px;
+      border: none;
+      background-color: #dbe0e8;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+    }
+
+    /* メインエリア（スクロール可能領域） */
+    .content-area {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 0 30px 30px 30px;
+    }
+
+    /* タイトル＆コントロールバー */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+    .page-title-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .page-title {
+      font-size: 22px;
       font-weight: bold;
     }
-    .time-header {
-      height: 40px;
-      background: #495057;
-      border-bottom: 1px solid #6c757d;
-    }
-    .time-slot {
-      height: 120px; /* 1時間を120pxとして計算 (1分=2px) */
-      border-bottom: 1px solid #6c757d;
+    .date-select {
+      font-size: 20px;
+      font-weight: bold;
       display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 5px;
-      font-size: 14px;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .region-tag {
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    /* 右側のチャンネルと番組配置エリア */
-    .channels-container {
+    /* 地デジ / BS 切替ボタン */
+    .tab-group {
+      display: flex;
+      background-color: #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .tab-btn {
+      padding: 10px 35px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #333;
+    }
+    .tab-btn.active {
+      background-color: #00a0e9;
+      color: #ffffff;
+    }
+
+
+    /* -----------------------------------
+      番組表（タイムテーブル）グリッド
+    ----------------------------------- */
+    .timetable-wrapper {
+      background-color: #ffffff;
+      border: 1px solid #d0d0d0;
+      display: flex;
+      overflow-x: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* 時間軸（左固定列） */
+    .time-sidebar {
+      width: 45px;
+      background-color: #4a515a;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+    .time-sidebar-header {
+      height: 40px;
+      background-color: #383e45;
+      border-bottom: 1px solid #5a626c;
+    }
+    .time-hour-cell {
+      height: 180px; /* 1時間 = 180px (1分 = 3px) */
+      border-bottom: 1px solid #5a626c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 10px;
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .time-hour-cell span {
+      font-size: 10px;
+    }
+
+    /* チャンネル列コンテナ */
+    .channels-wrapper {
       display: flex;
       flex-grow: 1;
     }
     .channel-column {
-      width: 180px;
+      width: 170px;
       flex-shrink: 0;
-      border-right: 1px solid #e0e0e0;
-      position: relative;
+      border-right: 1px solid #d0d0d0;
+    }
+    .channel-column:last-child {
+      border-right: none;
     }
     .channel-header {
       height: 40px;
-      line-height: 40px;
-      text-align: center;
+      background-color: #ffffff;
+      border-bottom: 1px solid #d0d0d0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: bold;
-      background: #f8f9fa;
-      border-bottom: 1px solid #ccc;
       font-size: 13px;
-    }
-    .program-area {
-      position: relative;
-      /* 5時〜8時（3時間分 = 360px）の高さを用意 */
-      height: 360px; 
-      background: #fafafa;
+      color: #222;
     }
 
-    /* 番組カードのブロック */
+    /* 番組配置エリア */
+    .program-canvas {
+      position: relative;
+      height: 540px; /* 3時間分 (5時〜7時) = 180px * 3 */
+    }
+
+    /* 番組カード */
     .program-card {
       position: absolute;
-      width: calc(100% - 4px);
-      left: 2px;
-      padding: 6px;
-      border-radius: 4px;
+      width: 100%;
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
       font-size: 11px;
+      line-height: 1.35;
       overflow: hidden;
-      border: 1px solid rgba(0,0,0,0.1);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      cursor: pointer;
     }
-    .program-title {
+    .program-card:hover {
+      filter: brightness(0.97);
+    }
+    .program-time-title {
       font-weight: bold;
-      font-size: 12px;
+      color: #111;
       margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .program-time-title .minute {
+      font-size: 12px;
+      font-weight: 900;
+      margin-right: 3px;
     }
     .program-desc {
-      color: #666;
-      line-height: 1.3;
+      color: #444;
+      font-size: 10.5px;
+      word-break: break-all;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    /* チャンネルごとのテーマ色（必要に応じて追加） */
-    .bg-green  { background-color: #d4edda; }
-    .bg-purple { background-color: #e2d9f3; }
-    .bg-yellow { background-color: #fff3cd; }
+    /* TVer風 チャンネル背景色パターン */
+    .theme-olive  { background-color: #c4d7b5; } /* HBC風 */
+    .theme-purple { background-color: #d8cbeb; } /* Eテレ風 */
+    .theme-white  { background-color: #ffffff; } /* NHK総合風 */
+    .theme-cream  { background-color: #fcf4d9; } /* STV・HTB風 */
+    .theme-green  { background-color: #bfe3c2; } /* TVh風 */
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>番組表</h1>
-  </div>
-
-  <div class="timetable-container">
-    <!-- 時間軸 (5時〜7時) -->
-    <div class="time-sidebar">
-      <div class="time-header"></div>
-      <div class="time-slot">5時</div>
-      <div class="time-slot">6時</div>
-      <div class="time-slot">7時</div>
+  <!-- 左サイドバー -->
+  <aside class="sidebar">
+    <div class="logo-area">
+      <div class="hamburger-icon">☰</div>
+      <div class="logo-text">TVer <span>10th</span></div>
     </div>
 
-    <!-- チャンネル列エリア -->
-    <div class="channels-container" id="channelsContainer">
-      <!-- JavaScriptでここにチャンネル毎の列と番組を動的挿入 -->
-    </div>
+    <ul class="nav-list">
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+        ホーム
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/></svg>
+        マイページ
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        さがす
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M17 2l-5 5-5-5"/></svg>
+        リアルタイム
+      </a>
+    </ul>
+
+    <div class="category-title">カテゴリ</div>
+    <ul class="category-list">
+      <li class="category-item">ドラマ</li>
+      <li class="category-item">バラエティ</li>
+      <li class="category-item">アニメ</li>
+      <li class="category-item">ニュース</li>
+      <li class="category-item">スポーツ</li>
+    </ul>
+  </aside>
+
+  <!-- メインエリア -->
+  <div class="main-wrapper">
+    <!-- ヘッダー検索バー -->
+    <header class="top-header">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" placeholder="番組名、出演者で検索">
+      </div>
+    </header>
+
+    <!-- コンテンツエリア -->
+    <main class="content-area">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">番組表</h1>
+          <div class="page-title-group" style="margin-top: 5px;">
+            <div class="date-select">9月15日(火) <span>✕</span></div>
+            <div class="region-tag">北海道（札幌）</div>
+          </div>
+        </div>
+
+        <div class="tab-group">
+          <button class="tab-btn active">地デジ</button>
+          <button class="tab-btn">BS</button>
+        </div>
+      </div>
+
+      <!-- 番組表タイムテーブル -->
+      <div class="timetable-wrapper">
+        <!-- 時間軸（5時〜7時） -->
+        <div class="time-sidebar">
+          <div class="time-sidebar-header"></div>
+          <div class="time-hour-cell">5 <span>時</span></div>
+          <div class="time-hour-cell">6 <span>時</span></div>
+          <div class="time-hour-cell">7 <span>時</span></div>
+        </div>
+
+        <!-- チャンネル別列（JSで挿入） -->
+        <div class="channels-wrapper" id="channelsWrapper"></div>
+      </div>
+    </main>
   </div>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyyTAarQNJNGTUOAdjIuXfWtdSBWRv2qGZ2_hfY7RAzd3ZiLWsbxhxTbMGMXpr11qba/exec"; // ★GASのURLに置き換え
+    // GAS API URL
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyyTAarQNJNGTUOAdjIuXfWtdSBWRv2qGZ2_hfY7RAzd3ZiLWsbxhxTbMGMXpr11qba/exec";
 
-    // 表示開始時間（5時00分 = 300分）
-    const START_HOUR = 5;
-    const START_TOTAL_MINUTES = START_HOUR * 60;
-    
-    // 1分あたりの高さ(px) : 1時間=120pxなので 1分=2px
-    const PX_PER_MINUTE = 2;
+    // タイムテーブルの開始時刻設定（5:00 = 300分）
+    const START_MINUTES = 5 * 60; 
+    // 1分あたりの高さpx（1時間 = 180px なので 1分 = 3px）
+    const PX_PER_MINUTE = 3;
 
+    // チャンネルごとの背景テーマ設定
+    const CHANNEL_THEMES = {
+      "HBC": "theme-olive",
+      "Eテレ・札幌": "theme-purple",
+      "NHK総合・札幌": "theme-white",
+      "STV札幌テレビ放送": "theme-cream",
+      "HTB北海道テレビ": "theme-cream",
+      "TVh": "theme-green",
+      "北海道文化放送": "theme-green"
+    };
+
+    // APIからデータ取得して描画
     fetch(GAS_API_URL)
       .then(res => res.json())
       .then(data => {
         renderTimetable(data);
+      })
+      .catch(err => {
+        console.error("データ取得エラー:", err);
       });
 
     function renderTimetable(programs) {
-      // 1. ユニークなチャンネル一覧を取得
+      // ユニークなチャンネル名のリストを作成
       const channels = [...new Set(programs.map(p => p.channel))];
-      const container = document.getElementById("channelsContainer");
+      const wrapper = document.getElementById("channelsWrapper");
+      wrapper.innerHTML = "";
 
-      // 色付け用
-      const colors = ['bg-green', 'bg-purple', 'bg-yellow'];
-
-      channels.forEach((ch, index) => {
-        // チャンネルごとの列を作成
+      channels.forEach(ch => {
         const col = document.createElement("div");
         col.className = "channel-column";
-        
+
+        // チャンネルヘッダー
         const header = document.createElement("div");
         header.className = "channel-header";
         header.innerText = ch;
         col.appendChild(header);
 
-        const area = document.createElement("div");
-        area.className = "program-area";
+        // 番組エリア
+        const canvas = document.createElement("div");
+        canvas.className = "program-canvas";
 
-        // 対象チャンネルの番組だけをフィルタリングして配置
+        // 対象チャンネルの番組を取得
         const chPrograms = programs.filter(p => p.channel === ch);
         chPrograms.forEach(p => {
-          const card = createProgramCard(p, colors[index % colors.length]);
-          if (card) area.appendChild(card);
+          const card = createProgramCard(p, CHANNEL_THEMES[ch] || "theme-white");
+          if (card) canvas.appendChild(card);
         });
 
-        col.appendChild(area);
-        container.appendChild(col);
+        col.appendChild(canvas);
+        wrapper.appendChild(col);
       });
     }
 
-    // 時間（HH:mm）を位置(top)と高さ(height)に変換してカードを生成
-    function createProgramCard(program, bgClass) {
-      const [sH, sM] = program.startTime.split(':').map(Number);
-      const [eH, eM] = program.endTime.split(':').map(Number);
+    function createProgramCard(p, themeClass) {
+      const [sH, sM] = p.startTime.split(':').map(Number);
+      const [eH, eM] = p.endTime.split(':').map(Number);
 
-      const startMin = sH * 60 + sM;
-      const endMin = eH * 60 + eM;
+      const startTotal = sH * 60 + sM;
+      const endTotal = eH * 60 + eM;
 
-      // 画面表示上のY座標(top)と高さ(height)を計算
-      const topPx = (startMin - START_TOTAL_MINUTES) * PX_PER_MINUTE;
-      const heightPx = (endMin - startMin) * PX_PER_MINUTE;
+      // top位置とheightの計算
+      const topPx = (startTotal - START_MINUTES) * PX_PER_MINUTE;
+      const heightPx = (endTotal - startTotal) * PX_PER_MINUTE;
 
-      if (topPx < 0) return null; // 範囲外の番組はスキップ
+      if (topPx < 0) return null; // 5時より前のデータは非表示
 
       const card = document.createElement("div");
-      card.className = `program-card ${bgClass}`;
+      card.className = `program-card ${themeClass}`;
       card.style.top = `${topPx}px`;
-      card.style.height = `${heightPx - 2}px`; // マージン分微調整
+      card.style.height = `${heightPx}px`;
+
+      // 分（2桁）を表示用に切り出し
+      const minuteStr = String(sM).padStart(2, '0');
 
       card.innerHTML = `
-        <div class="program-title">${program.startTime} ${program.title}</div>
-        <div class="program-desc">${program.description || ''}</div>
+        <div class="program-time-title">
+          <span class="minute">${minuteStr}</span>${p.title}
+        </div>
+        <div class="program-desc">${p.description || ''}</div>
       `;
 
       return card;
